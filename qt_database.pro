@@ -18,7 +18,8 @@ CONFIG(debug, debug|release){
 
 SOURCES += \
         main.cpp \
-    database_test.cpp
+    database_test.cpp \
+    tinyxml2.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -26,4 +27,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    database_test.h
+    database_test.h \
+    tinyxml2.h
