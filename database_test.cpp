@@ -32,7 +32,7 @@ void database_test::close()
     db.close();
 }
 
-bool database_test::insert_data(vitalInfo vi)
+bool database_test::insert_data(parVitalInfo vi)
 {
     QSqlQuery query(db);
     QString qstr_insert =  QString("insert into xml(filepath, date, inc, orbit_ad, look_lr, cenlon, cenlat, sensor, polar) "
@@ -129,7 +129,7 @@ bool database_test::create_table(QString table_name)
     return true;
 }
 
-bool database_test::select_data(QString key, QString value, vector<vitalInfo> vis)
+bool database_test::select_data(QString key, QString value, vector<parVitalInfo>& vis)
 {
     QSqlQuery query(db);
     if(!query.exec(QString("select * from xml where %1='%2'").arg(key).arg(value)))
@@ -142,15 +142,47 @@ bool database_test::select_data(QString key, QString value, vector<vitalInfo> vi
     {
         while(query.next())
         {
-            vitalInfo vi(query.value("filepath").toString(),
-                         query.value("date").toDate(),
-                         query.value("inc").toDouble(),
-                         query.value("orbit_ad").toString(),
-                         query.value("look_lr").toString(),
-                         query.value("cenlon").toDouble(),
-                         query.value("cenlat").toDouble(),
-                         query.value("sensor").toString(),
-                         query.value("polar").toString());
+            parVitalInfo vi(query.value("filepath").toString(),
+                            query.value("date").toDate(),
+                            query.value("inc").toDouble(),
+                            query.value("orbit_ad").toString(),
+                            query.value("look_lr").toString(),
+                            query.value("cenlon").toDouble(),
+                            query.value("cenlat").toDouble(),
+                            query.value("sensor").toString(),
+                            query.value("polar").toString());
+            vis.push_back(vi);
+        }
+    }
+    return true;
+}
+
+bool database_test::select_data(map<QString, QString> filters, vector<parVitalInfo> &vis)
+{
+    QSqlQuery query(db);
+    QString qstr = "select * from xml where";
+    for(auto filter : filters){
+        qstr += QString(" %1='%2'").arg(filter.first).arg(filter.second);
+    }
+    if(!query.exec(qstr))
+    {
+        lastError = "select_data, query exec failed.";
+        qDebug()<<"select_data, query exec failed.";
+        return false;
+    }
+    else
+    {
+        while(query.next())
+        {
+            parVitalInfo vi(query.value("filepath").toString(),
+                            query.value("date").toDate(),
+                            query.value("inc").toDouble(),
+                            query.value("orbit_ad").toString(),
+                            query.value("look_lr").toString(),
+                            query.value("cenlon").toDouble(),
+                            query.value("cenlat").toDouble(),
+                            query.value("sensor").toString(),
+                            query.value("polar").toString());
             vis.push_back(vi);
         }
     }
@@ -186,7 +218,7 @@ void database_test::record_xmls_in_database(vector<string> xmlpaths)
     int percent_multi_1000 = 0;
     for(auto xmlpath : xmlpaths)
     {
-        vitalInfo vi;
+        parVitalInfo vi;
         tinyxml2::XMLDocument doc;
         if(doc.LoadFile(xmlpath.c_str()) != 0) {
             continue ;
